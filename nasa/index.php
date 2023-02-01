@@ -1,104 +1,33 @@
 <?php
 // https://www.xibel-it.eu/debug-telegram-bot-sdk-with-webhook-in-laravel/
-class TelegramBot{
+
+require_once('../TelegramBot.php');
+
+class NasaBot extends TelegramBot{
 
     public $ini_array = [];
 
     function __construct() {
-        $this->ini_array = parse_ini_file(".env");
-    }
-
-    public function setWebhook() {
-        $url = $this->ini_array['URL'].$this->ini_array['TOKEN'].'/setWebhook?url='.$this->ini_array['PUBLIC_URL'];
-
-        // Initialize a CURL session.
-        $curl = curl_init();
-        
-        // Return Page contents.
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        
-        // Grab URL and pass it to the variable
-        curl_setopt($curl, CURLOPT_URL, $url);
-        
-        $result = curl_exec($curl);
-        return $result;
-    }
-
-    public function deleteWebhook() {
-        $url = $this->ini_array['URL'].$this->ini_array['TOKEN'].'/deleteWebhook';
-        // Initialize a CURL session.
-        $curl = curl_init();
-        
-        // Return Page contents.
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        
-        // Grab URL and pass it to the variable
-        curl_setopt($curl, CURLOPT_URL, $url);
-        
-        $result = curl_exec($curl);
-        return $result;
-    }
-
-    public function getWebhookInfo() {
-        $url = $this->ini_array['URL'].$this->ini_array['TOKEN'].'/getWebhookInfo';
-        
-        // Initialize a CURL session.
-        $curl = curl_init();
-        
-        // Return Page contents.
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-        
-        // Grab URL and pass it to the variable
-        curl_setopt($curl, CURLOPT_URL, $url);
-        
-        $result = curl_exec($curl);
-        return $result;
+        $this->ini_array = parse_ini_file(".env"); 
+        parent::__construct();
     }
 
     public function saveLog($text) {
         file_put_contents("messages.log", date('Y-m-d H:i:s').' - '.$text."\n", FILE_APPEND);
     }
 
-    function sendText($msg, $chatid = '-690607908', $silent = false) {
-        // $url = "https://api.telegram.org/bot".$bot->ini_array['TOKEN']."/sendMessage?chat_id=" . $chatId . "&text=" . urlencode($response);
-        $data = array(
-            'chat_id' => $chatid,
-            'text' => $msg,
-            'parse_mode' => 'html',
-            'disable_web_page_preview' => true,
-            'disable_notification' => $silent
-        );
-        $url = 'https://api.telegram.org/bot'.$this->ini_array['TOKEN'].'/sendMessage';
-        $curl = curl_init($url);
-        curl_setopt_array($curl, array(
-            CURLOPT_HEADER => 0,
-            CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_POST => 1,
-            CURLOPT_POSTFIELDS => $data
-        ));
-        $result = curl_exec($curl);
-        curl_close($curl);
-        return $result;
-    }
-
-    public function get_nasa_pictureday() {
+    public function getNASApictureday() {
         $url = $this->ini_array['NASA_URL'].$this->ini_array['NASA_APIKEY'];
-    }
-
-    public function pruebas() {
-        //var_dump($this->ini_array);
-
+        $json = file_get_contents($url);
+        //echo $json;
+        $data = json_decode($json);
+        // object fields: date, explanation, hdurl, media_type, service_version, title, url
+        return $data;
     }
 }
 
-$bot = new TelegramBot();
-// $bot->setWebhook();
-// echo $bot->getWebhookInfo();
 
-// Recibir el update de Telegram
-$update = json_decode(file_get_contents('php://input'), true);
-
-if (isset($update['message']['text'])) {
+function pipedream($update) {
     // pipedream -----------------------------------    
     $handle = curl_init('https://eolmlyay4to9iia.m.pipedream.net');
 
@@ -114,7 +43,35 @@ if (isset($update['message']['text'])) {
 
     $result = curl_exec($handle);
     /////////////////////////////////////////////////////////
+}
 
+function nasa() {
+    // -1001507585258 => chatid de familia
+    // '-797062014' => chatid de pruebas
+    $bot = new NasaBot();
+    $token = $bot->ini_array['TOKEN'];
+    $nasaDatas = $bot->getNASApictureday();
+    // $msg = "<b>$nasaDatas->title ($nasaDatas->date)</b></br>\n$nasaDatas->explanation\n";
+    $msg = "<u><b>$nasaDatas->title ($nasaDatas->date) :</b></u>";
+   
+    // function sendPhoto($token, $chatid, $urlphoto, $caption = "")
+    $bot->sendPhoto($bot->ini_array['TOKEN'], '-1001507585258', $nasaDatas->hdurl, $msg); 
+    // function sendText($token, $msg, $chatid = '-797062014', $silent = false) {
+    $bot->sendText($bot->ini_array['TOKEN'], $nasaDatas->explanation, '-1001507585258');
+}
+
+nasa();
+
+
+// Recibir el update de Telegram cuando un usuario introduce algo
+/*
+$update = json_decode(file_get_contents('php://input'), true);
+
+if (isset($update['message']['text'])) {
+    pipedream($update);
+
+    $bot = new NasaBot();
+    // $bot->sendMedia($nasaDatas->title, $nasaDatas->hdurl);
 
     // Obtener el mensaje recibido
     $message = $update['message']['text'];
@@ -122,8 +79,10 @@ if (isset($update['message']['text'])) {
     $chatId = $update['message']['chat']['id'];
     
     // Grabo el log
-    $url = "https://api.telegram.org/bot".$bot->ini_array['TOKEN']."/sendMessage?chat_id=".$chatId."&text=".urlencode($response);
+    //$url = "https://api.telegram.org/bot".$bot->ini_array['TOKEN']."/sendMessage?chat_id=".$chatId."&text=".urlencode($response);
     $bot->saveLog("(".$chatId." - ".$update['message']['chat']['title'].") - ".$message);
     $bot->sendText(date('Y-m-d H:i:s')." - ".$message, $chatId);
 }
+*/
+
 ?>
