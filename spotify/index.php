@@ -37,18 +37,18 @@ function pipedream($update) {
 }
 
 function spotify() {
-    $bot = new spotifyBot();
+    $bot = new SpotifyBot();
     // echo $bot->setWebhook($bot->ini_array['TOKEN'], $bot->ini_array['PUBLIC_URL'])."\n";
-    // echo $bot->getWebhookInfo($bot->ini_array['TOKEN'])."\n";
-    // $bot->sendText($bot->ini_array['TOKEN'], date('Y-m-d H:i:s')." - "."prueba", "-797062014");
-    echo shell_exec('ls -lart');
+    echo $bot->getWebhookInfo($bot->ini_array['TOKEN'])."\n";
+    // echo $bot->sendText($bot->ini_array['TOKEN'], date('Y-m-d H:i:s')." - "."prueba", "-797062014");
+    // echo shell_exec('ls -lart');
 }
 
 spotify();
 
 
 // Recibir el update de Telegram cuando un usuario introduce algo
-
+/*
 $update = json_decode(file_get_contents('php://input'), true);
 
 if (isset($update['message']['text'])) {
@@ -68,6 +68,6 @@ if (isset($update['message']['text'])) {
     // function sendText($token, $msg, $chatid, $silent = false)
     $bot->sendText($bot->ini_array['TOKEN'], date('Y-m-d H:i:s')." - ".$message, $chatId);
 }
-
+*/
 
 ?>

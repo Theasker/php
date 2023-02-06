@@ -49,6 +49,7 @@ function nasa() {
     // -1001507585258 => chatid de familia
     // '-797062014' => chatid de pruebas
     $bot = new NasaBot();
+    // echo $bot->getWebhookInfo($bot->ini_array['TOKEN'])."\n";
     $token = $bot->ini_array['TOKEN'];
     $nasaDatas = $bot->getNASApictureday();
     // $msg = "<b>$nasaDatas->title ($nasaDatas->date)</b></br>\n$nasaDatas->explanation\n";

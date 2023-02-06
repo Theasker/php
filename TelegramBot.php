@@ -8,6 +8,23 @@ class TelegramBot {
     function __construct() {
         $this->url = "https://api.telegram.org/bot";
         // $this->url = "http://172.22.0.2:8081/bot";
+        // echo "clase padre\n";
+    }
+
+    public function getUpdates($token) {
+        $url = $this->url.$token.'/getUpdates';
+
+        // Initialize a CURL session.
+        $curl = curl_init();
+        
+        // Return Page contents.
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        
+        // Grab URL and pass it to the variable
+        curl_setopt($curl, CURLOPT_URL, $url);
+        
+        $result = curl_exec($curl);
+        return $result;
     }
 
     public function setWebhook($token, $webhookUrl) {
@@ -199,6 +216,7 @@ class TelegramBot {
 }
 // $bot = new TelegramBot();
 // $token = "5877626268:AAH20O9i4qYjz_0988SPCvmw0xGgVKy3ZPA";
+
 // echo $bot->sendText($token, "https://apod.nasa.gov/apod/image/2301/TripleCometZTF_Caldera_3574.jpg", "-797062014");
 // var_dump ($bot->sendPhoto($token, '-797062014', 'https://apod.nasa.gov/apod/image/2301/TripleCometZTF_Caldera_3574.jpg', "caption"));
 // $bot->saveFile('https://apod.nasa.gov/apod/image/2301/TripleCometZTF_Caldera_3574.jpg');
