@@ -1,14 +1,15 @@
 <?php
 // https://www.xibel-it.eu/debug-telegram-bot-sdk-with-webhook-in-laravel/
 
-require_once('../TelegramBot.php');
+require_once('/config/www/TelegramBot.php');
+require_once('/config/www/translate/index.php');
 
 class NasaBot extends TelegramBot{
 
     public $ini_array = [];
 
     function __construct() {
-        $this->ini_array = parse_ini_file(".env"); 
+        $this->ini_array = parse_ini_file("/config/www/nasa/.env"); 
         parent::__construct();
     }
 
@@ -26,7 +27,7 @@ class NasaBot extends TelegramBot{
     }
 }
 
-
+/* 
 function pipedream($update) {
     // pipedream -----------------------------------    
     $handle = curl_init('https://eolmlyay4to9iia.m.pipedream.net');
@@ -44,7 +45,7 @@ function pipedream($update) {
     $result = curl_exec($handle);
     /////////////////////////////////////////////////////////
 }
-
+ */
 function nasa() {
     // -1001507585258 => chatid de familia
     // '-797062014' => chatid de pruebas
@@ -53,12 +54,17 @@ function nasa() {
     $token = $bot->ini_array['TOKEN'];
     $nasaDatas = $bot->getNASApictureday();
     // $msg = "<b>$nasaDatas->title ($nasaDatas->date)</b></br>\n$nasaDatas->explanation\n";
-    $msg = "<u><b>$nasaDatas->title ($nasaDatas->date) :</b></u>";
+    $bottranslate = new DeeplBot();
+    $translate = $bottranslate->translate($nasaDatas->title);
+    //$msg = "<u><b>$nasaDatas->title ($nasaDatas->date) :</b></u>";
+    $msg = "<u><b>$translate ($nasaDatas->date) :</b></u>";
    
     // function sendPhoto($token, $chatid, $urlphoto, $caption = "")
     $bot->sendPhoto($bot->ini_array['TOKEN'], '-1001507585258', $nasaDatas->hdurl, $msg); 
-    // function sendText($token, $msg, $chatid = '-797062014', $silent = false) {
-    $bot->sendText($bot->ini_array['TOKEN'], $nasaDatas->explanation, '-1001507585258');
+    $translate = $bottranslate->translate($nasaDatas->explanation);
+    // sendText($token, $msg, $chatid = '-797062014', $silent = false)
+    //$bot->sendText($bot->ini_array['TOKEN'], $nasaDatas->explanation, '-1001507585258');
+    $bot->sendText($bot->ini_array['TOKEN'], $translate, '-1001507585258');
 }
 
 nasa();

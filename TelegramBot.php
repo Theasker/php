@@ -112,29 +112,6 @@ class TelegramBot {
         return $result;
     }
 
-    function sendMedia_temp ($caption, $media, $chatid = '-797062014') {
-        
-        //file = new CURLFile(realpath($media));
-
-        $data = array(
-            'chat_id' => $chatid,
-            'caption' => $caption,
-            'photo' => $media
-        );
-
-        $options = array(
-            CURLOPT_URL => $this->ini_array['URL'] . $this->ini_array['TOKEN'] . '/sendPhoto',
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $data
-        );
-
-        $curl = curl_init();
-        curl_setopt_array($curl, $options);
-        $result = curl_exec($curl);
-        curl_close($curl);
-        return $result;
-    }
-
     function sendMedia($token, $urlphoto, $type, $chatid = '-797062014', $caption = "") {
         try {
             $name = $this->saveFile($urlphoto);
