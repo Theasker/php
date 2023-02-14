@@ -15,31 +15,51 @@ class AEMET_Bot extends TelegramBot{
     }
 
     public function municipios(){
-        $url_municipios = '/valores/climatologicos/inventarioestaciones/todasestaciones';
+        // https://opendata.aemet.es/opendata/api/valores/climatologicos/inventarioestaciones/todasestaciones
+        $url_municipios = '/api/valores/climatologicos/inventarioestaciones/todasestaciones';
+        //$url_municipios = '/api/maestro/municipios';
         $json = $this->llamada($url_municipios);
+        //echo $json;
         $res = json_decode($json, true);
-        $this->datos($res['datos']);
+        // echo $this->datos($res['datos']);
+        $this->readcsv("municipios.csv");
+    }
+
+    private function getCodMunicipio($file){
+        if (($handle = fopen($file, "r")) !== FALSE) {
+            while (($data = fgetcsv($handle, null, ";")) !== FALSE) {
+                $num = count($data);
+                $row++;
+                echo "$row ";
+                for ($c=0; $c < $num; $c++) {
+                    echo "- $data[$c] ";
+                }
+                echo "\n";
+            }
+            fclose($handle);
+        }
     }
 
     private function llamada($endpoint) {
+        echo($this->ini_array['AEMET_URL'].$endpoint."\n");
         $curl = curl_init();
         $apikey = $this->ini_array['AEMET_APIKEY'];
         curl_setopt_array($curl, array(
             CURLOPT_URL => $this->ini_array['AEMET_URL']."$endpoint/?api_key=$apikey",
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
+            CURLOPT_ENCODING => 'UTF-8',
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            //CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "GET",
-            CURLOPT_HTTPHEADER => array(
-                "cache-control: no-cache"
-            ),
+            CURLOPT_HTTPHEADER => array('Accept: application/json', 'Content-Type: application/json;charset=ISO-8859-15'),
         ));
-    
+            
         $response = curl_exec($curl);
         $err = curl_error($curl);
-    
+        
+        // var_dump(curl_getinfo($curl));
+
         curl_close($curl);
     
         if ($err) {
@@ -55,7 +75,7 @@ class AEMET_Bot extends TelegramBot{
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 
-        $response = curl_exec($ch);
+        $response = utf8_decode(curl_exec($ch));
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
@@ -74,7 +94,7 @@ function run() {
     $bot = new AEMET_Bot();
     // echo $bot->deleteWebhook($bot->ini_array['TOKEN']);
     //echo $bot->getUpdates($bot->ini_array['TOKEN']);
-    echo($bot->ini_array['AEMET_APIKEY'])."\n";
+    echo("AEMET_APIKEY:\n".$bot->ini_array['AEMET_APIKEY'])."\n";
     echo $bot->municipios();
 }
 run();

@@ -57,7 +57,7 @@ function nasa() {
     $bottranslate = new DeeplBot();
     $translate = $bottranslate->translate($nasaDatas->title);
     //$msg = "<u><b>$nasaDatas->title ($nasaDatas->date) :</b></u>";
-    $msg = "<u><b>$translate ($nasaDatas->date) :</b></u>";
+    $msg = "<u><b>$translate ($nasaDatas->date)</b></u>:";
    
     // function sendPhoto($token, $chatid, $urlphoto, $caption = "")
     $bot->sendPhoto($bot->ini_array['TOKEN'], '-1001507585258', $nasaDatas->hdurl, $msg); 
