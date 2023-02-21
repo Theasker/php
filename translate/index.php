@@ -18,10 +18,6 @@ class DeeplBot extends TelegramBot{
         parent::__construct();
     }
 
-    public function saveLog($text) {
-        file_put_contents("messages.log", date('Y-m-d H:i:s').' '.$text."\n", FILE_APPEND);
-    }
-
     public function translate($text) {
         $curl = curl_init();
         // $curlOptions = 
@@ -46,6 +42,41 @@ class DeeplBot extends TelegramBot{
         return $res->translations[0]->text;
     }
 }
+
+class LibreTranslate extends TelegramBot {
+
+    public $ini_array = [];
+
+    function __construct() {
+        $this->ini_array = parse_ini_file("/config/www/translate/.env"); 
+        parent::__construct();
+    }
+
+    function translate ($text, $target) {
+        $url = $this->ini_array['LIBRETRANSLATE_URL'];
+        $data = array(
+            'q' => $text,
+            'source' => 'auto',
+            'target' => $target,
+            'format' => 'text',
+            'api_key' => ''
+        );
+        $options = array(
+            'http' => array(
+                'header'  => "Content-Type: application/json\r\n",
+                'method'  => 'POST',
+                'content' => json_encode($data),
+            ),
+        );
+
+        $context = stream_context_create($options);
+        $response = file_get_contents($url, false, $context);
+        $res = json_decode($response);
+        //var_dump($res);
+        return $res->translatedText;
+    }
+
+}
 /* 
 function pipedream($update) {
     // pipedream -----------------------------------    
@@ -65,21 +96,16 @@ function pipedream($update) {
     /////////////////////////////////////////////////////////
 }
  */
-function run() {
-    $bot = new DeeplBot();
-    $bot->saveLog("prueba");
+function translate() {
+    // $bot = new DeeplBot();
+    // $bot->saveLog("prueba");
     // ($token, $msg, $chatid)
-    //echo $bot->deleteWebhook($bot->ini_array['TOKEN']);
-    //echo $bot->getUpdates($bot->ini_array['TOKEN']);
-    //echo $bot->getWebhookInfo($bot->ini_array['TOKEN'])."\n";
-    
-    //echo $bot->setWebhook($bot->ini_array['TOKEN'], $bot->ini_array['PUBLIC_URL'])."\n";
-    //echo $bot->getWebhookInfo($bot->ini_array['TOKEN'])."\n";
-    echo $bot->translate("Hello world");
+    $bot = new LibreTranslate();
+    $bot->translate("Hello world", "es");
     //echo $bot->sendText($bot->ini_array['TOKEN'], date('Y-m-d H:i:s')." - prueba", "-797062014");
 }
 
-// run();
+//translate();
 
 
 // Recibir el update de Telegram cuando un usuario introduce algo

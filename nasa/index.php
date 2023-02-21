@@ -54,17 +54,21 @@ function nasa() {
     $token = $bot->ini_array['TOKEN'];
     $nasaDatas = $bot->getNASApictureday();
     // $msg = "<b>$nasaDatas->title ($nasaDatas->date)</b></br>\n$nasaDatas->explanation\n";
-    $bottranslate = new DeeplBot();
-    $translate = $bottranslate->translate($nasaDatas->title);
+    // Traducción del titulo =======================================
+    $bottranslate = new LibreTranslate();
+    
+    $translate = $bottranslate->translate($nasaDatas->title, "es");
     //$msg = "<u><b>$nasaDatas->title ($nasaDatas->date) :</b></u>";
-    $msg = "<u><b>$translate ($nasaDatas->date)</b></u>:";
+    // Mensaje del título con la fecha
+    $msg = "<u><b>$translate</b></u> ($nasaDatas->date):";
+    //$msg = "<u><b>$nasaDatas->title</b></u> ($nasaDatas->date):";
    
-    // function sendPhoto($token, $chatid, $urlphoto, $caption = "")
     $bot->sendPhoto($bot->ini_array['TOKEN'], '-1001507585258', $nasaDatas->hdurl, $msg); 
-    $translate = $bottranslate->translate($nasaDatas->explanation);
-    // sendText($token, $msg, $chatid = '-797062014', $silent = false)
-    //$bot->sendText($bot->ini_array['TOKEN'], $nasaDatas->explanation, '-1001507585258');
+    // Envío de la traducción de la descripción ===============
+    $translate = $bottranslate->translate($nasaDatas->explanation, "es");
+    // echo $translate;
     $bot->sendText($bot->ini_array['TOKEN'], $translate, '-1001507585258');
+    // =======================================================
 }
 
 nasa();

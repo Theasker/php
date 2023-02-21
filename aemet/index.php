@@ -4,6 +4,7 @@ require_once('/config/www/TelegramBot.php');
 class AEMET_Bot extends TelegramBot{
 
     public $ini_array = [];
+    private $file_municipios = '/config/www/aemet/municipios.csv';
 
     function __construct() {
         $this->ini_array = parse_ini_file("/config/www/aemet/.env"); 
@@ -14,40 +15,50 @@ class AEMET_Bot extends TelegramBot{
         file_put_contents("messages.log", date('Y-m-d H:i:s').' - '.$text."\n", FILE_APPEND);
     }
 
-    public function municipios(){
+    public function municipio($municipio){
         // https://opendata.aemet.es/opendata/api/valores/climatologicos/inventarioestaciones/todasestaciones
-        $url_municipios = '/api/valores/climatologicos/inventarioestaciones/todasestaciones';
-        //$url_municipios = '/api/maestro/municipios';
+        //$url_municipios = '/api/valores/climatologicos/inventarioestaciones/todasestaciones';
+        /* $url_municipios = '/api/maestro/municipios';
         $json = $this->llamada($url_municipios);
-        //echo $json;
-        $res = json_decode($json, true);
+        echo $json; */
+        //$res = json_decode($json, true);
         // echo $this->datos($res['datos']);
-        $this->readcsv("municipios.csv");
+        $codmunicipio = $this->getCodMunicipio($municipio);
+        // /api/prediccion/especifica/municipio/diaria/{municipio}
+        $url_pred_diaria= "/api/prediccion/especifica/municipio/diaria/$codmunicipio";
+        $json = $this->llamada($url_pred_diaria);
+        // echo $json."\n";
+        $jsond = json_decode($json, true);
+        // var_dump($jsond);
+        if ($jsond['estado'] == 200) {
+            $url_pred_diaria = $jsond['datos'];
+            $pred_diaria = $this->getDatos($url_pred_diaria);
+        };
     }
 
-    private function getCodMunicipio($file){
-        if (($handle = fopen($file, "r")) !== FALSE) {
+    private function getCodMunicipio($municipio){
+        $codmunicipio = '';
+        if (($handle = fopen($this->file_municipios, "r")) !== FALSE) {
             while (($data = fgetcsv($handle, null, ";")) !== FALSE) {
-                $num = count($data);
-                $row++;
-                echo "$row ";
-                for ($c=0; $c < $num; $c++) {
-                    echo "- $data[$c] ";
+                // Localizamos el municipio comparando en minúsculas
+                if (strtolower($data[4]) == strtolower($municipio)) {
+                    $codmunicipio = $data[1].$data[2];
+                    break;
                 }
-                echo "\n";
             }
             fclose($handle);
         }
+        return $codmunicipio;
     }
 
     private function llamada($endpoint) {
-        echo($this->ini_array['AEMET_URL'].$endpoint."\n");
+        // echo($this->ini_array['AEMET_URL'].$endpoint."\n");
         $curl = curl_init();
         $apikey = $this->ini_array['AEMET_APIKEY'];
         curl_setopt_array($curl, array(
             CURLOPT_URL => $this->ini_array['AEMET_URL']."$endpoint/?api_key=$apikey",
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => 'UTF-8',
+            CURLOPT_ENCODING => "",
             CURLOPT_MAXREDIRS => 10,
             CURLOPT_TIMEOUT => 30,
             //CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
@@ -69,7 +80,7 @@ class AEMET_Bot extends TelegramBot{
         }
     }
 
-    private function datos($url) {
+    private function getDatos($url) {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -81,7 +92,7 @@ class AEMET_Bot extends TelegramBot{
 
         if ($status == 200) {
             $data = json_decode($response, true);
-            print_r($data);
+            return $data;
         } else {
             echo 'Error en la llamada a la API';
         }
@@ -94,8 +105,8 @@ function run() {
     $bot = new AEMET_Bot();
     // echo $bot->deleteWebhook($bot->ini_array['TOKEN']);
     //echo $bot->getUpdates($bot->ini_array['TOKEN']);
-    echo("AEMET_APIKEY:\n".$bot->ini_array['AEMET_APIKEY'])."\n";
-    echo $bot->municipios();
+    // echo("AEMET_APIKEY:\n".$bot->ini_array['AEMET_APIKEY'])."\n";
+    $bot->municipio("Zaragoza");
 }
 run();
 ?>

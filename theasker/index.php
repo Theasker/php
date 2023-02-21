@@ -26,8 +26,9 @@ class TheaskerBot extends TelegramBot{
         $str = <<<'EOD'
         <u><b>Comandos a ejecutar con este bot</b></u>
             <code>!help</code>: Muestra esta ayuda
-            <code>!comando</code>: Ejecuta comando en el sistema operativo
+            <code>!comando <comando></code>: Ejecuta comando en el sistema operativo
             <code>!wol</code>: Inicia el ordenador de casa
+            <code>!traducir (es|en) <texto></code>: Traduce un texto de Inglés-español o español-inglés.
         EOD;
         return $str;
     }
@@ -40,14 +41,29 @@ class TheaskerBot extends TelegramBot{
                 $out = shell_exec($command);
             }else $out = "Comando vacío\n";
         }else if (str_starts_with($message, '!wol')) {
-            $command = "ssh pi@casa.theasker.ovh sudo etherwake -i eth0 00:23:7D:07:64:DD";
+            // $command = "ssh root@casa.theasker.ovh etherwake -i eth0 00:23:7D:07:64:DD";
+            $command = "ssh pi@casa.theasker.ovh sudo /mnt/datos/scripts/bin/wol.sh";
             $out = shell_exec($command);
+            $out = "Se ha enviado la solicitud de WOL ...\n<code>sudo etherwake -i eth0 00:23:7D:07:64:DD</code>\n<code>$out</code>\n";
         }else if (str_starts_with($message, '!spotify')) {
-            
             $out = shell_exec($command);
-        }
-        else if (str_starts_with($message, '!help')) {
+            // TODO
+        }else if (str_starts_with($message, '!help')) {
             $out = $this->help();
+        }else if (str_starts_with($message, '!traducir')) {
+            $command = $this->cleanMessage($message, '!traducir');
+            // Ver a qué idioma (es,en) tenemos que traducir
+            $language = explode(" ",$command);
+            if ($language[0] == 'en' or $language[0] == 'es') {
+                require_once('/config/www/translate/index.php');
+                $botTranslate = new LibreTranslate();
+                // Quito el idioma del texto
+                $text = $this->cleanMessage($command, $language[0]);
+                $out = $botTranslate->translate($text, $language[0]);
+            }else {
+                $out = "Idioma seleccionado no es correcto";
+            }
+
         }else $out = "Comando \"<code>$message</code>\" => No hago nada";
         return $out;
     }
@@ -72,19 +88,15 @@ function pipedream($update) {
     /////////////////////////////////////////////////////////
 }
 
-function run() {
+function theasker() {
     $bot = new TheaskerBot();
-        
-    //echo $bot->deleteWebhook($bot->ini_array['TOKEN']);
-    //echo $bot->getUpdates($bot->ini_array['TOKEN']);   
-    // echo $bot->setWebhook($bot->ini_array['TOKEN'], $bot->ini_array['PUBLIC_URL'])."\n";
-    //echo $bot->getWebhookInfo($bot->ini_array['TOKEN'])."\n";
-    // ($token, $msg, $chatid, $silent = false
-    // echo $bot->sendText($bot->ini_array['TOKEN'], "prueba", "-797062014");
+    $out = $bot->dispatcher("!traducir en hola que tal estas?", "-797062014");
+    echo $out;
     
+    $bot->sendText($bot->ini_array['TOKEN'], $out, "-797062014");    
 }
 
-//run();
+theasker();
 
 
 // Recibir el update de Telegram cuando un usuario introduce algo
