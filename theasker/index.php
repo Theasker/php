@@ -65,7 +65,7 @@ class TheaskerBot extends TelegramBot{
                 $out = "Idioma seleccionado no es correcto";
             }
         }else if (str_starts_with($message, '!clonewars')) {
-            $out = $this->cloneWarsPhrase();
+            $out = $this->cloneWarsPhrase();           
         }
         else $out = "Comando \"<code>$message</code>\" => No hago nada";
         return $out;
@@ -124,7 +124,7 @@ class TheaskerBot extends TelegramBot{
                 
                 // Save the new video ID for the next check
                 file_put_contents('./last_video_id.txt', $video_id);
-                echo 'New video downloaded: ' . $video_title;
+                echo 'New video downloaded: ' . $video_title . " ( $video_url )";
             } else {
                 echo 'No new videos found';
             }
@@ -205,14 +205,18 @@ function pipedream($update) {
 
 function theasker() {
     $bot = new TheaskerBot();
-    // $out = $bot->dispatcher("!clonewars", "-797062014");
+    $out = $bot->dispatcher("!clonewars", "-797062014");
+    echo $out;
     // $bot->youtubeCheckChannels();
-    //$bot->sendText($bot->ini_array['TOKEN'], $out, "-797062014");
-    
-    $path_file = 'video.mp4';
+        
+    // $path_file = './videos/Cómo hacer preguntas EFICIENTES en IT.mp4';
     
     // sendMedia($token, $chat_id, $filename, $type, $caption = '')
-    echo $bot->sendMedia($bot->ini_array['TOKEN'], "-797062014", $path_file, 'video');
+    // echo $bot->sendMedia($bot->ini_array['TOKEN'], "-797062014", $path_file, 'video');
+
+    // $youtube_video = 'https://www.youtube.com/watch?v=NtKw_jEbfKY';
+
+    // $bot->getYoutubeVideo($youtube_video);
 }
 
 theasker();
@@ -222,7 +226,7 @@ theasker();
 $update = json_decode(file_get_contents('php://input'), true);
 
 if (isset($update['message']['text'])) {
-    //pipedream($update);
+    pipedream($update);
     $bot = new TheaskerBot();
     $message = $update['message']['text'];
     $chatId = $update['message']['chat']['id'];

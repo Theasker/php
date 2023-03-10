@@ -39,7 +39,7 @@ class YouTubeDownloader {
      * Set the url 
      * @param string 
      */ 
-    public function setUrl($url){ 
+    public function setUrl($url){
         $this->video_url = $url; 
     } 
      
